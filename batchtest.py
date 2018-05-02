@@ -1,34 +1,32 @@
 import os
 from pykoikatu import *
 
-in_folder = 'test'
+in_dir = 'test_booru'
 out_filename = 'out.png'
 
 
 def test(in_filename):
     try:
-        img1, img2, chara_data = read_card(in_filename)
-        tokens = parse_tokens(chara_data)
-        token_idx_seg = read_token_idx_seg(tokens)
-        body = read_tokens(tokens, token_idx_seg, token_dspl_body)
-        name = read_tokens(tokens, token_idx_seg, token_dspl_name)
-        write_tokens(tokens, token_idx_seg, token_dspl_body, body)
-        write_tokens(tokens, token_idx_seg, token_dspl_name, name)
-        chara_data = commit_tokens(tokens)
-        write_card(out_filename, img1, img2, chara_data)
+        card = read_card(in_filename)
+        face_body_params = parse_face_body_params(card)
+        dump_face_body_params(card, face_body_params)
+        last_name, first_name, nickname = parse_name(card)
+        dump_name(card, last_name, first_name, nickname)
+        write_card(out_filename, card)
         with open(in_filename, 'rb') as f:
             card_data_in = f.read()
         with open(out_filename, 'rb') as f:
             card_data_out = f.read()
-        # card_data_in and card_data_out may differ in eof bytes
-        assert (card_data_in.startswith(card_data_out)
-                and len(card_data_in) - len(card_data_out) < 8)
-    except:
-        print('Error', in_filename)
+        # card_data_in may have additional data at the end, such as eof and bepis
+        assert card_data_in.startswith(card_data_out)
+    except KeyboardInterrupt:
+        exit()
+    except Exception as e:
+        print('Error', e)
 
 
 if __name__ == '__main__':
-    for root, dirs, files in os.walk(in_folder):
+    for root, dirs, files in os.walk(in_dir):
         for file in sorted(files):
             in_filename = os.path.join(root, file)
             print(in_filename)

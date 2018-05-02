@@ -1,0 +1,5 @@
+*.bak
+*.png
+*.txt
+__pycache__
+test*
