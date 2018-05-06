@@ -17,7 +17,6 @@ if __name__ == '__main__':
         last_name_list, male_name_list, female_name_list)
     dump_name(card, last_name, first_name, nickname)
 
-
     card['img1'], card['img2'] = generate_img12(last_name[0])
 
     write_card(out_filename.format(last_name + first_name), card)

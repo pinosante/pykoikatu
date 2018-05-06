@@ -2,7 +2,7 @@
 
 from pykoikatu import *
 
-in_filename = 'in.png'
+in_filename = 'in2.png'
 out_filename = 'out.png'
 
 if __name__ == '__main__':
