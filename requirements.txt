@@ -1,0 +1,5 @@
+beautifulsoup4>=4.6.0
+h5py>=2.7.1
+hsluv>=0.0.2
+numpy>=1.14.3
+pillow>=5.1.0

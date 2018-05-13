@@ -1,7 +1,6 @@
 *.bak
 *.pickle
 *.png
-*.txt
 __pycache__
 out*
 test*

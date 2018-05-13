@@ -1,7 +1,7 @@
 import os
 from pykoikatu import *
 
-in_dir = 'test_booru'
+in_dir = 'tmp'
 out_filename = 'out.png'
 
 
