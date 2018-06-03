@@ -1,3 +1,11 @@
+# Hi, I love your code. But the latest version of the character cards, have a KKEx segment
+# in the charactercard. I fixed your code, but I'm not a real programmer by trade. So this is
+# an ugly hack, but it makes your code useable for all character cards now. Please take a look at it
+# and maybe find a way to beautify my code :).
+# If you send me an email I can send you two charactercards. One with, and one without the KKEx 
+# segment so you can see where your old script breaks down.
+# Hope you enjoy my fix!
+
 # A chara card contains two pngs (cover, head) and chara data.
 # The chara data contains lstInfo and four lists (custom, coordinate, parameter, status).
 # The custom list contains three lists (face, body, hair).
@@ -319,7 +327,9 @@ def read_card(filename):
     parameter_token, delta_idx = parse_token(card_data, idx)
     idx += delta_idx
     status_token, delta_idx = parse_token(card_data, idx)
-
+    idx += delta_idx # NEW: try to read the KKEx information at the end of the file
+    KKEx_token, delta_idx = parse_token(card_data,idx) # NEW:
+ 
     card = {
         'img1': img1,
         'img2': img2,
@@ -331,6 +341,7 @@ def read_card(filename):
         'coordinate': coordinate_token,
         'parameter': parameter_token,
         'status': status_token,
+        'KKEx': KKEx_token # NEW: extra KKEx information
     }
     return card
 
@@ -343,20 +354,47 @@ def write_card(filename, card):
     parameter_data = dump_token(card['parameter'])
     status_data = dump_token(card['status'])
 
-    idx = 0
-    card['lstInfo']['lstInfo'][0]['pos'] = idx
-    card['lstInfo']['lstInfo'][0]['size'] = (
-        len(face_data) + len(body_data) + len(hair_data))
-    idx += len(face_data) + len(body_data) + len(hair_data)
-    card['lstInfo']['lstInfo'][1]['pos'] = idx
-    card['lstInfo']['lstInfo'][1]['size'] = len(coordinate_data)
-    idx += len(coordinate_data)
-    card['lstInfo']['lstInfo'][2]['pos'] = idx
-    card['lstInfo']['lstInfo'][2]['size'] = len(parameter_data)
-    idx += len(parameter_data)
-    card['lstInfo']['lstInfo'][3]['pos'] = idx
-    card['lstInfo']['lstInfo'][3]['size'] = len(status_data)
-    idx += len(status_data)
+    #NEW: lines 355-389 replace your old lines 346-360
+    # as you can see I'm a horrible programmer :), this is just an ugly hack.
+    # what basically happens is that in the case of a KKEx list in a charactercard
+    # (very common) the list is properly taken into account
+    # I'm very confident that you can rewrite this stuff beneath into much
+    # more elegant code. But this works.
+    if card['lstInfo']['lstInfo'][0]['name'] == "KKEx":
+        KKEx_data = dump_token(card['KKEx'])
+        card['lstInfo']['lstInfo'][0]['pos'] = (
+            len(face_data) + len(body_data) + len(hair_data) + 
+            len(coordinate_data) + len(parameter_data) + len(status_data))
+        card['lstInfo']['lstInfo'][0]['size'] = len(KKEx_data)
+        idx = 0
+        card['lstInfo']['lstInfo'][1]['pos'] = idx
+        card['lstInfo']['lstInfo'][1]['size'] = (
+            len(face_data) + len(body_data) + len(hair_data))
+        idx += len(face_data) + len(body_data) + len(hair_data)
+        card['lstInfo']['lstInfo'][2]['pos'] = idx
+        card['lstInfo']['lstInfo'][2]['size'] = len(coordinate_data)
+        idx += len(coordinate_data)
+        card['lstInfo']['lstInfo'][3]['pos'] = idx
+        card['lstInfo']['lstInfo'][3]['size'] = len(parameter_data)
+        idx += len(parameter_data)
+        card['lstInfo']['lstInfo'][4]['pos'] = idx
+        card['lstInfo']['lstInfo'][4]['size'] = len(status_data)
+        idx += len(status_data)        
+    else:
+        idx = 0
+        card['lstInfo']['lstInfo'][0]['pos'] = idx
+        card['lstInfo']['lstInfo'][0]['size'] = (
+            len(face_data) + len(body_data) + len(hair_data))
+        idx += len(face_data) + len(body_data) + len(hair_data)
+        card['lstInfo']['lstInfo'][1]['pos'] = idx
+        card['lstInfo']['lstInfo'][1]['size'] = len(coordinate_data)
+        idx += len(coordinate_data)
+        card['lstInfo']['lstInfo'][2]['pos'] = idx
+        card['lstInfo']['lstInfo'][2]['size'] = len(parameter_data)
+        idx += len(parameter_data)
+        card['lstInfo']['lstInfo'][3]['pos'] = idx
+        card['lstInfo']['lstInfo'][3]['size'] = len(status_data)
+        idx += len(status_data)
     lstinfo_data = dump_token(card['lstInfo'])
 
     with open(filename, 'wb') as g:
@@ -375,7 +413,10 @@ def write_card(filename, card):
         g.write(card['unknown_data'])
 
         g.write(lstinfo_data)
-
+        if card['lstInfo']['lstInfo'][0]['name'] == "KKEx": #NEW: In case there was no KKEx file, 
+            KKEx_data_length = len(KKEx_data)               #NEW: the length of KKEx_ data would become 1,
+        else:                                               #NEW: with value None. This hack makes it 0,
+            KKEx_data_length = 0                            #NEW: so nothing is written.
         g.write(
             struct.pack(
                 '<Q',
@@ -388,6 +429,8 @@ def write_card(filename, card):
         g.write(coordinate_data)
         g.write(parameter_data)
         g.write(status_data)
+        if card['lstInfo']['lstInfo'][0]['name'] == "KKEx": #NEW: only write KKEx data if it's there
+            g.write(KKEx_data)                              #NEW:
 
 
 def generate_img_text(width, height, bg_color, text, text_color):
